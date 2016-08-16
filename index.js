@@ -1,24 +1,14 @@
 /**
  * Created by bryonliu on 2016/8/15.
  */
-/*
- *类型 ： 输入密码
- *    ：  设置密码
- *
- * option={
- *   width {int}
- *   height {int},
- *   type {int} 3*3,4*4,5*5
- *   inputEnd {function}
- *  }
- * */
+
 
 class H5Ges {
 
     constructor(options) {
-        this.options = options || {};
+        options=options ||{};
         this.width = options.width || document.body.offsetWidth;
-        this.height = options.height || 320;
+        this.height = options.height || this.width;
         this.R = options.R || this.width*0.17/2;
         this.R_INNER = this.R*0.3;      //选中之后内圆的半径
         this.dy = options.type || 3; // 维度 默认是3*3
