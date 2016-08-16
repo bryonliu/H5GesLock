@@ -3,22 +3,44 @@
  */
 
 /***
+ * option={
+ *     width : 宽度，建议使用默认的屏幕宽度
+ *     height : 高度
+ *     R      : 大圆的半径
+ *     R_INNER: 选中之后内圆的半径
+ *     dy     : 维度（N*N），默认是3
+ *     offsetX: 左右留白
+ *     offsetY:上下留白
+ *     lineWidthNormal : 绘制大圆的线宽
+ *     lineWidthTouched：绘制触摸点连接线的线宽
  *
+ *     colorNormal ： 正常情况下绘制大圆的边框颜色
+ *     colorNormalTouched：选中情况下绘制连接线的颜色
+ *     colorNormalTouchedFill ：选中情况下绘制大圆的填充色
+ *     colorWarnTouched ：警告情况下连接线的颜色
+ *     colorWarnTouchedFill： 警告情况下选中点的大圆填充色
+ * }
  */
 class H5GesLock {
 
     constructor(options) {
-        options=options ||{};
+        options = options || {};
+        this.inputEnd = options.inputEnd;
         this.width = options.width || document.body.offsetWidth;
         this.height = options.height || this.width;
-        this.R = options.R || this.width*0.17/2;
-        this.R_INNER = this.R*0.3;      //选中之后内圆的半径
+        this.R = options.R || this.width * 0.17 / 2;
+        this.R_INNER = this.R * 0.3;      //选中之后内圆的半径
         this.dy = options.type || 3; // 维度 默认是3*3
-        this.offsetX = this.width*0.145; //触摸点上下和左右的留白
-        this.offsetY = this.width*0.145;
-        this.default_width_line=1.5;
-        this.default__width_touch_line = 1.5;
-        this.touchSpots = caculateTouchSpotsLocation(this);  // 屏幕上的所有点
+        this.offsetX = options.offsetX || this.width * 0.145; //触摸点上下和左右的留白
+        this.offsetY = options.offsetY || this.width * 0.145;
+        this.lineWidthNormal = options.lineWidthNormal || 1.5;
+        this.lineWidthTouched = options.lineWidthTouched || 1.5;
+
+        this.colorNormal = options.colorNormal || "#CCCCCC"; // 默认点边框颜色值
+        this.colorNormalTouched = options.colorNormalTouched || "#2D72F1";  //划线颜色
+        this.colorNormalTouchedFill = options.colorNormalTouchedFill || "#B0C8F3" // 选择点的填充颜色
+        this.colorWarnTouched = options.colorWarnTouched || "#F95A5A";  //错误情况下划线颜色
+        this.colorWarnTouchedFill = options.colorWarnTouchedFill || "#F6BFBF" // 错误情况下的选择点的填充颜色
 
         if (!options.container || !document.getElementById(options.container)) {
             throw new Error("please input right id of you canvas");
@@ -29,24 +51,19 @@ class H5GesLock {
         this.mContainer.width = this.width;
         this.mContainer.height = this.height;
 
-        this.default_color = "#CCCCCC"; // 默认点边框颜色值
 
-        this.default_touche_color ="#2D72F1";  //划线颜色
-        this.default_touche_fill_color="#B0C8F3" // 选择点的填充颜色
-        this.default_warn_touche_color ="#F95A5A";  //错误情况下划线颜色
-        this.default_warn_touche_fill_color="#F6BFBF" // 错误情况下的选择点的填充颜色
-
-        this.inputEnd = options.inputEnd;
+        this.touchSpots = caculateTouchSpotsLocation(this);  // 屏幕上的所有点
+        this.hasTouchedSpots = [];
 
         this.touchStartListener = touchStartHandler(this);
         this.touchMoveListenner = touchMoveHandler(this);
         this.touchEndListener = touchEndHandler(this);
-        this.hasTouchedSpots=[];
+
     }
 
     init() {
         this.clear();
-        this.hasTouchedSpots=[];
+        this.hasTouchedSpots = [];
         drawDefaultSpots(this);
         bindEvent(this);
     }
@@ -89,15 +106,15 @@ function caculateTouchSpotsLocation(H5Ges) {
 function drawNormal(h5ges, lastPoint) {
 
     drawDefaultSpots(h5ges);
-    drawTouchSpots(h5ges,true);
-    drawTouchLine(h5ges, true,lastPoint);
+    drawTouchSpots(h5ges, true);
+    drawTouchLine(h5ges, true, lastPoint);
     drawTouchCenter(h5ges, true);
 }
 function drawWarn(h5ges) {
 
     drawDefaultSpots(h5ges);
-    drawTouchSpots(h5ges,false);
-    drawTouchLine(h5ges, false,null);
+    drawTouchSpots(h5ges, false);
+    drawTouchLine(h5ges, false, null);
     drawTouchCenter(h5ges, false);
 }
 /**
@@ -105,12 +122,14 @@ function drawWarn(h5ges) {
  * @param h5ges
  * @param isNormal 是正常选中还是警告
  */
-function drawTouchSpots(h5ges,isNormal) {
+function drawTouchSpots(h5ges, isNormal) {
     var mContext = h5ges.mContext;
     h5ges.hasTouchedSpots.forEach(function (spotIndex) {
         var spot = h5ges.touchSpots[spotIndex];
+        var color = isNormal ? h5ges.colorNormalTouchedFill : h5ges.colorWarnTouchedFill;
         mContext.beginPath();
-        mContext.fillStyle = isNormal ? h5ges.default_touche_fill_color:h5ges.default_warn_touche_fill_color;
+        mContext.strokeStyle=color;
+        mContext.fillStyle = color;
         mContext.arc(spot.X, spot.Y, h5ges.R, 0, Math.PI * 2);
         mContext.fill();
         mContext.closePath();
@@ -127,8 +146,8 @@ function drawDefaultSpots(h5ges) {
     var mContext = h5ges.mContext;
     h5ges.touchSpots.forEach(function (spot) {
         mContext.beginPath();
-        mContext.lineWidth = h5ges.default_width_line;
-        mContext.strokeStyle = h5ges.default_color;
+        mContext.lineWidth = h5ges.lineWidthNormal;
+        mContext.strokeStyle = h5ges.colorNormal;
         mContext.arc(spot.X, spot.Y, h5ges.R, 0, Math.PI * 2);
         mContext.closePath();
         mContext.stroke();
@@ -148,7 +167,7 @@ function drawTouchCenter(h5ges, isNormal) {
         var spot = h5ges.touchSpots[spotIndex];
         mContext.beginPath();
         mContext.lineWidth = 1;
-        mContext.fillStyle = isNormal ? h5ges.default_touche_color : h5ges.default_warn_touche_color;
+        mContext.fillStyle = isNormal ? h5ges.colorNormalTouched : h5ges.colorWarnTouched;
         mContext.arc(spot.X, spot.Y, h5ges.R_INNER, 0, Math.PI * 2);
         mContext.fill();
         mContext.closePath();
@@ -162,7 +181,7 @@ function drawTouchCenter(h5ges, isNormal) {
  * @param color
  * @param lastPoint
  */
-function drawTouchLine(h5ges,isNormal, lastPoint) {
+function drawTouchLine(h5ges, isNormal, lastPoint) {
 
     var touchSpots = h5ges.hasTouchedSpots;
 
@@ -171,8 +190,8 @@ function drawTouchLine(h5ges,isNormal, lastPoint) {
     touchSpots.forEach(function (spot) {
         h5ges.mContext.lineTo(h5ges.touchSpots[spot].X, h5ges.touchSpots[spot].Y);
     });
-    h5ges.mContext.lineWidth = h5ges.default__width_touch_line;
-    h5ges.mContext.strokeStyle = isNormal ? h5ges.default_touche_color:h5ges.default_warn_touche_color;
+    h5ges.mContext.lineWidth = h5ges.lineWidthTouched;
+    h5ges.mContext.strokeStyle = isNormal ? h5ges.colorNormalTouched : h5ges.colorWarnTouched;
     h5ges.mContext.stroke();
     h5ges.mContext.closePath();
     var mContext = h5ges.mContext;
@@ -190,31 +209,31 @@ function drawTouchLine(h5ges,isNormal, lastPoint) {
 }
 function bindEvent(h5Ges) {
 
-    h5Ges.mContainer.addEventListener("touchstart",h5Ges.touchStartListener, false);
-    h5Ges.mContainer.addEventListener("touchmove",h5Ges.touchMoveListenner, false);
-    h5Ges.mContainer.addEventListener("touchend",h5Ges.touchEndListener, false);
+    h5Ges.mContainer.addEventListener("touchstart", h5Ges.touchStartListener, false);
+    h5Ges.mContainer.addEventListener("touchmove", h5Ges.touchMoveListenner, false);
+    h5Ges.mContainer.addEventListener("touchend", h5Ges.touchEndListener, false);
 }
-var touchStartHandler = function(h5Ges){
+var touchStartHandler = function (h5Ges) {
     return function (e) {
         let touche = e.touches[0];
         var touchPoint = {X: touche.pageX, Y: touche.pageY};
-        isTouchSpot(h5Ges,touchPoint);
+        isTouchSpot(h5Ges, touchPoint);
     };
 }
 
-var touchMoveHandler = function(h5Ges){
+var touchMoveHandler = function (h5Ges) {
     return function (e) {
         e.preventDefault();
         var touche = e.touches[0];
-        var touchePoint={X: touche.pageX, Y: touche.pageY};
-        var istouch = isTouchSpot(h5Ges,touchePoint);
-        pickSpotsOnLine(h5Ges.hasTouchedSpots,h5Ges.dy);
+        var touchePoint = {X: touche.pageX, Y: touche.pageY};
+        var istouch = isTouchSpot(h5Ges, touchePoint);
+        pickSpotsOnLine(h5Ges.hasTouchedSpots, h5Ges.dy);
         h5Ges.clear();
         let lastPoint = istouch ? null : {X: touche.pageX, Y: touche.pageY};
-        drawNormal(h5Ges,lastPoint);
+        drawNormal(h5Ges, lastPoint);
     };
 }
-var touchEndHandler = function(h5Ges){
+var touchEndHandler = function (h5Ges) {
     return function (e) {
         h5Ges.clear();
         drawNormal(h5Ges, h5Ges.hasTouchedSpots);
@@ -230,11 +249,11 @@ var touchEndHandler = function(h5Ges){
     };
 }
 
-function unbindEvent(h5Ges){
+function unbindEvent(h5Ges) {
     var mContainer = h5Ges.mContainer;
-    mContainer.removeEventListener("touchstart",h5Ges.touchStartListener, false);
-    mContainer.removeEventListener("touchmove",h5Ges.touchMoveListenner, false);
-    mContainer.removeEventListener("touchend",h5Ges.touchEndListener, false);
+    mContainer.removeEventListener("touchstart", h5Ges.touchStartListener, false);
+    mContainer.removeEventListener("touchmove", h5Ges.touchMoveListenner, false);
+    mContainer.removeEventListener("touchend", h5Ges.touchEndListener, false);
 }
 /**
  * @brify 判断是否触摸到某个点以及是否已经被触摸过
@@ -242,7 +261,7 @@ function unbindEvent(h5Ges){
  * @param currentSpot
  * @returns {*|boolean}
  */
-function isTouchSpot(h5ges,currentSpot) {
+function isTouchSpot(h5ges, currentSpot) {
     return h5ges.touchSpots.some(function (spot, index) {
         let xDiff = spot.X - currentSpot.X;
         let yDiff = spot.Y - currentSpot.Y;
@@ -258,19 +277,19 @@ function isTouchSpot(h5ges,currentSpot) {
  * @param touchedSpots
  * @param d
  */
-function pickSpotsOnLine(touchedSpots,d){
+function pickSpotsOnLine(touchedSpots, d) {
 
-    for(let i = 0 ;i < touchedSpots.length - 1;i++){
+    for (let i = 0; i < touchedSpots.length - 1; i++) {
 
-       var nums = numberOntheLineOf(touchedSpots[i],touchedSpots[i+1],d)
-        var last = i+1;
-       for(let k = 0;k <nums.length;k++){
-           if(touchedSpots.indexOf(nums[k])==-1){
-               //console.log("has")
-              touchedSpots.splice(last,0,nums[k]);
-               last+=1;
-           }
-       }
+        var nums = numberOntheLineOf(touchedSpots[i], touchedSpots[i + 1], d)
+        var last = i + 1;
+        for (let k = 0; k < nums.length; k++) {
+            if (touchedSpots.indexOf(nums[k]) == -1) {
+                //console.log("has")
+                touchedSpots.splice(last, 0, nums[k]);
+                last += 1;
+            }
+        }
     }
 }
 /***
