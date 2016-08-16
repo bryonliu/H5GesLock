@@ -25,6 +25,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *     colorNormalTouchedFill ：选中情况下绘制大圆的填充色
  *     colorWarnTouched ：警告情况下连接线的颜色
  *     colorWarnTouchedFill： 警告情况下选中点的大圆填充色
+ *
+ *     inputEnd： 输入一次之后的回调函数参数｛pwd｝
  * }
  */
 var H5GesLock = function () {
