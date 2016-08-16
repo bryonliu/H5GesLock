@@ -28,6 +28,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *
  *     inputEnd： 输入一次之后的回调函数参数｛pwd｝
  * }
+ *     H5GesLock 对外方法：
+ *     init:初始化
+ *     drawWarn ： 绘制上次的告警样式
+ *
  */
 var H5GesLock = function () {
     function H5GesLock(options) {
@@ -71,20 +75,15 @@ var H5GesLock = function () {
     _createClass(H5GesLock, [{
         key: "init",
         value: function init() {
-            this.clear();
+            clear(this);
             this.hasTouchedSpots = [];
             drawDefaultSpots(this);
             bindEvent(this);
         }
     }, {
-        key: "clear",
-        value: function clear() {
-            this.mContext.clearRect(0, 0, this.width, this.height);
-        }
-    }, {
         key: "drawWarn",
         value: function drawWarn() {
-            this.clear();
+            clear(this);
             _drawWarn(this);
         }
     }]);
@@ -100,6 +99,10 @@ window.H5GesLock = H5GesLock;
  *    4 5 6
  *    7 8 9
  */
+
+function clear(h5ges) {
+    h5ges.mContext.clearRect(0, 0, h5ges.width, h5ges.height);
+}
 function caculateTouchSpotsLocation(H5Ges) {
     var spots = [];
 
@@ -240,14 +243,14 @@ var touchMoveHandler = function touchMoveHandler(h5Ges) {
         var touchePoint = { X: touche.pageX, Y: touche.pageY };
         var istouch = isTouchSpot(h5Ges, touchePoint);
         pickSpotsOnLine(h5Ges.hasTouchedSpots, h5Ges.dy);
-        h5Ges.clear();
+        clear(h5Ges);
         var lastPoint = istouch ? null : { X: touche.pageX, Y: touche.pageY };
         drawNormal(h5Ges, lastPoint);
     };
 };
 var touchEndHandler = function touchEndHandler(h5Ges) {
     return function (e) {
-        h5Ges.clear();
+        clear(h5Ges);
         drawNormal(h5Ges, h5Ges.hasTouchedSpots);
         h5Ges.lastTouchSpots = h5Ges.hasTouchedSpots;
 
