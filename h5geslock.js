@@ -8,9 +8,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * Created by bryonliu on 2016/8/15.
  */
 
-var H5Ges = function () {
-    function H5Ges(options) {
-        _classCallCheck(this, H5Ges);
+/***
+ *
+ */
+var H5GesLock = function () {
+    function H5GesLock(options) {
+        _classCallCheck(this, H5GesLock);
 
         options = options || {};
         this.width = options.width || document.body.offsetWidth;
@@ -48,7 +51,7 @@ var H5Ges = function () {
         this.hasTouchedSpots = [];
     }
 
-    _createClass(H5Ges, [{
+    _createClass(H5GesLock, [{
         key: "init",
         value: function init() {
             this.clear();
@@ -69,10 +72,10 @@ var H5Ges = function () {
         }
     }]);
 
-    return H5Ges;
+    return H5GesLock;
 }();
 
-window.H5Ges = H5Ges;
+window.H5GesLock = H5GesLock;
 /**
  * 计算手势密码的N*N个位置
  * 3*3顺序依次为：
@@ -332,4 +335,4 @@ function numberOntheLineOf(i, j, d) {
     return result;
 }
 
-//# sourceMappingURL=h5ges.js.map
+//# sourceMappingURL=h5geslock.js.map

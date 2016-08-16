@@ -17,19 +17,19 @@
 </head>
 <body>
 <canvas id="canvas"></canvas>
-<script type="text/javascript" src="h5ges.js"></script>
+<script type="text/javascript" src="h5geslock.js"></script>
 <script>
-    var hges = new H5Ges({
+    var hgesLock = new H5GesLock({
         container: "canvas",
         inputEnd:function(str){
             console.log("pwd: " + str);
-            hges.drawWarn();
+            hgesLock.drawWarn();
             setTimeout(function(){
-                hges.init();
+                hgesLock.init();
             },1000);
         }
     });
-    hges.init();
+    hgesLock.init();
 
 </script>
 </body>

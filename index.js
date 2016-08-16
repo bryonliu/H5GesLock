@@ -2,8 +2,10 @@
  * Created by bryonliu on 2016/8/15.
  */
 
-
-class H5Ges {
+/***
+ *
+ */
+class H5GesLock {
 
     constructor(options) {
         options=options ||{};
@@ -58,7 +60,7 @@ class H5Ges {
         drawWarn(this);
     }
 }
-window.H5Ges = H5Ges;
+window.H5GesLock = H5GesLock;
 /**
  * 计算手势密码的N*N个位置
  * 3*3顺序依次为：
