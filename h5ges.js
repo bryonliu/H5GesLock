@@ -26,11 +26,15 @@ var H5Ges = function () {
         this.options = options || {};
         this.width = options.width || document.body.offsetWidth;
         this.height = options.height || 320;
-        this.R = options.R || 25;
+        this.R = options.R || this.width * 0.17 / 2;
+        this.R_INNER = this.R * 0.3; //选中之后内圆的半径
         this.dy = options.type || 3; // 维度 默认是3*3
-        this.offsetX = 40; //触摸点上下和左右的留白
-        this.offsetY = 40;
-        this.touchSpots = caculateTouchSpotsLocation(this);
+        this.offsetX = this.width * 0.145; //触摸点上下和左右的留白
+        this.offsetY = this.width * 0.145;
+        this.default_width_line = 1.5;
+        this.default__width_touch_line = 1.5;
+        this.touchSpots = caculateTouchSpotsLocation(this); // 屏幕上的所有点
+
         if (!options.container || !document.getElementById(options.container)) {
             throw new Error("please input right id of you canvas");
         }
@@ -39,13 +43,20 @@ var H5Ges = function () {
 
         this.mContainer.width = this.width;
         this.mContainer.height = this.height;
-        this.default_color = "#C3E0C4"; // 默认绘图颜色值
-        this.default_color_warn = "#C95B5A"; //默认警告颜色值
+
+        this.default_color = "#CCCCCC"; // 默认点边框颜色值
+
+        this.default_touche_color = "#2D72F1"; //划线颜色
+        this.default_touche_fill_color = "#B0C8F3"; // 选择点的填充颜色
+        this.default_warn_touche_color = "#F95A5A"; //错误情况下划线颜色
+        this.default_warn_touche_fill_color = "#F6BFBF"; // 错误情况下的选择点的填充颜色
+
         this.inputEnd = options.inputEnd;
 
         this.touchStartListener = touchStartHandler(this);
         this.touchMoveListenner = touchMoveHandler(this);
         this.touchEndListener = touchEndHandler(this);
+        this.hasTouchedSpots = [];
     }
 
     _createClass(H5Ges, [{
@@ -53,7 +64,7 @@ var H5Ges = function () {
         value: function init() {
             this.clear();
             this.hasTouchedSpots = [];
-            drawTouchSpots(this);
+            drawDefaultSpots(this);
             bindEvent(this);
         }
     }, {
@@ -65,7 +76,7 @@ var H5Ges = function () {
         key: "drawWarn",
         value: function drawWarn() {
             this.clear();
-            _drawWarn(this, this.lastTouchSpots);
+            _drawWarn(this);
         }
     }]);
 
@@ -92,30 +103,53 @@ function caculateTouchSpotsLocation(H5Ges) {
                 X: H5Ges.offsetX + H5Ges.R + col * X_Dis,
                 Y: H5Ges.offsetY + H5Ges.R + row * Y_Dis
             };
-            console.log("X = " + point.X + " Y = " + point.Y);
             spots.push(point);
         }
     }
     return spots;
 }
 
-function draw(h5ges, touchSpots, color, lastPoint) {
-    dranTouchLine(h5ges.mContext, touchSpots, color, lastPoint, h5ges.touchSpots);
-    drawTouchSpots(h5ges);
+function drawNormal(h5ges, lastPoint) {
+
+    drawDefaultSpots(h5ges);
+    drawTouchSpots(h5ges, true);
+    drawTouchLine(h5ges, true, lastPoint);
+    drawTouchCenter(h5ges, true);
 }
-function drawNormal(h5ges, touchSpots, lastPoint) {
-    draw(h5ges, touchSpots, h5ges.default_color, lastPoint);
+function _drawWarn(h5ges) {
+
+    drawDefaultSpots(h5ges);
+    drawTouchSpots(h5ges, false);
+    drawTouchLine(h5ges, false, null);
+    drawTouchCenter(h5ges, false);
 }
-function _drawWarn(h5ges, touchSpots) {
-    draw(h5ges, touchSpots, h5ges.default_color_warn, null, h5ges.touchSpots);
+/**
+ * 选择点颜色填充
+ * @param h5ges
+ * @param isNormal 是正常选中还是警告
+ */
+function drawTouchSpots(h5ges, isNormal) {
+    var mContext = h5ges.mContext;
+    h5ges.hasTouchedSpots.forEach(function (spotIndex) {
+        var spot = h5ges.touchSpots[spotIndex];
+        mContext.beginPath();
+        mContext.fillStyle = isNormal ? h5ges.default_touche_fill_color : h5ges.default_warn_touche_fill_color;
+        mContext.arc(spot.X, spot.Y, h5ges.R, 0, Math.PI * 2);
+        mContext.fill();
+        mContext.closePath();
+        mContext.stroke();
+    });
 }
-function drawTouchSpots(h5ges) {
+/***
+ *  绘初始化默认图
+ * @param h5ges
+ */
+function drawDefaultSpots(h5ges) {
 
     var mContext = h5ges.mContext;
-
     h5ges.touchSpots.forEach(function (spot) {
         mContext.beginPath();
-        mContext.lineWidth = 2;
+        mContext.lineWidth = h5ges.default_width_line;
         mContext.strokeStyle = h5ges.default_color;
         mContext.arc(spot.X, spot.Y, h5ges.R, 0, Math.PI * 2);
         mContext.closePath();
@@ -123,40 +157,56 @@ function drawTouchSpots(h5ges) {
     });
 }
 
-function drawTouchCenter(mContext, touchSpots, color, allSpots) {
-    touchSpots.forEach(function (spotIndex) {
-        var spot = allSpots[spotIndex];
+/**
+ * 绘制以选择点的中间小圆
+ * @param mContext
+ * @param touchSpots
+ * @param color
+ * @param allSpots
+ */
+function drawTouchCenter(h5ges, isNormal) {
+    var mContext = h5ges.mContext;
+    h5ges.hasTouchedSpots.forEach(function (spotIndex) {
+        var spot = h5ges.touchSpots[spotIndex];
         mContext.beginPath();
         mContext.lineWidth = 1;
-        mContext.fillStyle = color;
-        mContext.arc(spot.X, spot.Y, 10, 0, Math.PI * 2);
+        mContext.fillStyle = isNormal ? h5ges.default_touche_color : h5ges.default_warn_touche_color;
+        mContext.arc(spot.X, spot.Y, h5ges.R_INNER, 0, Math.PI * 2);
         mContext.fill();
         mContext.closePath();
         mContext.stroke();
     });
 }
-function dranTouchLine(mContext, touchSpots, color, lastPoint, allSpots) {
+/**
+ * 绘制一选择点以及当前触摸点的连线
+ * @param h5ges
+ * @param color
+ * @param lastPoint
+ */
+function drawTouchLine(h5ges, isNormal, lastPoint) {
+
+    var touchSpots = h5ges.hasTouchedSpots;
 
     if (!touchSpots || touchSpots.length == 0) return;
-    mContext.beginPath();
+    h5ges.mContext.beginPath();
     touchSpots.forEach(function (spot) {
-        mContext.lineTo(allSpots[spot].X, allSpots[spot].Y);
+        h5ges.mContext.lineTo(h5ges.touchSpots[spot].X, h5ges.touchSpots[spot].Y);
     });
-    mContext.lineWidth = 6;
-    mContext.strokeStyle = color;
-    mContext.stroke();
-    mContext.closePath();
+    h5ges.mContext.lineWidth = h5ges.default__width_touch_line;
+    h5ges.mContext.strokeStyle = isNormal ? h5ges.default_touche_color : h5ges.default_warn_touche_color;
+    h5ges.mContext.stroke();
+    h5ges.mContext.closePath();
+    var mContext = h5ges.mContext;
 
     if (lastPoint != null) {
         var lastTouchSpotIndex = touchSpots[touchSpots.length - 1];
-        var lastSpot = allSpots[lastTouchSpotIndex];
+        var lastSpot = h5ges.touchSpots[lastTouchSpotIndex];
         mContext.beginPath();
         mContext.moveTo(lastSpot.X, lastSpot.Y);
         mContext.lineTo(lastPoint.X, lastPoint.Y);
         mContext.stroke();
         mContext.closePath();
     }
-    drawTouchCenter(mContext, touchSpots, color, allSpots);
 }
 function bindEvent(h5Ges) {
 
@@ -167,7 +217,8 @@ function bindEvent(h5Ges) {
 var touchStartHandler = function touchStartHandler(h5Ges) {
     return function (e) {
         var touche = e.touches[0];
-        isTouchSpot({ X: touche.pageX, Y: touche.pageY }, h5Ges.hasTouchedSpots, h5Ges.touchSpots, h5Ges.R);
+        var touchPoint = { X: touche.pageX, Y: touche.pageY };
+        isTouchSpot(h5Ges, touchPoint);
     };
 };
 
@@ -175,11 +226,12 @@ var touchMoveHandler = function touchMoveHandler(h5Ges) {
     return function (e) {
         e.preventDefault();
         var touche = e.touches[0];
-        var istouch = isTouchSpot({ X: touche.pageX, Y: touche.pageY }, h5Ges.hasTouchedSpots, h5Ges.touchSpots, h5Ges.R);
+        var touchePoint = { X: touche.pageX, Y: touche.pageY };
+        var istouch = isTouchSpot(h5Ges, touchePoint);
         pickSpotsOnLine(h5Ges.hasTouchedSpots, h5Ges.dy);
         h5Ges.clear();
         var lastPoint = istouch ? null : { X: touche.pageX, Y: touche.pageY };
-        drawNormal(h5Ges, h5Ges.hasTouchedSpots, lastPoint);
+        drawNormal(h5Ges, lastPoint);
     };
 };
 var touchEndHandler = function touchEndHandler(h5Ges) {
@@ -205,15 +257,18 @@ function unbindEvent(h5Ges) {
     mContainer.removeEventListener("touchend", h5Ges.touchEndListener, false);
 }
 /**
- * 判断是否触摸到某个点以及是否已经被触摸过
+ * @brify 判断是否触摸到某个点以及是否已经被触摸过
+ * @param h5ges
+ * @param currentSpot
+ * @returns {*|boolean}
  */
-function isTouchSpot(currentSpot, touchedSpots, allSpots, R) {
-    return allSpots.some(function (spot, index) {
+function isTouchSpot(h5ges, currentSpot) {
+    return h5ges.touchSpots.some(function (spot, index) {
         var xDiff = spot.X - currentSpot.X;
         var yDiff = spot.Y - currentSpot.Y;
         var dir = Math.pow(xDiff * xDiff + yDiff * yDiff, 0.5);
-        if (dir < R & touchedSpots.indexOf(index) < 0) {
-            touchedSpots.push(index);
+        if (dir < h5ges.R & h5ges.hasTouchedSpots.indexOf(index) < 0) {
+            h5ges.hasTouchedSpots.push(index);
             return true;
         }
     });
@@ -224,7 +279,6 @@ function isTouchSpot(currentSpot, touchedSpots, allSpots, R) {
  * @param d
  */
 function pickSpotsOnLine(touchedSpots, d) {
-    //var result = touchedSpots.slice(0);
 
     for (var i = 0; i < touchedSpots.length - 1; i++) {
 
@@ -232,7 +286,7 @@ function pickSpotsOnLine(touchedSpots, d) {
         var last = i + 1;
         for (var k = 0; k < nums.length; k++) {
             if (touchedSpots.indexOf(nums[k]) == -1) {
-                console.log("has");
+                //console.log("has")
                 touchedSpots.splice(last, 0, nums[k]);
                 last += 1;
             }
