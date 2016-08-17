@@ -13,12 +13,47 @@
             width: 100%;
             height: 100%;
         }
+        div{
+            width:100%;
+            height: 100px;
+        }
     </style>
 </head>
 <body>
+<div></div>
 <canvas id="canvas"></canvas>
 <script type="text/javascript" src="h5geslock.js"></script>
 <script>
+    function elementLeft(event) {
+        var offset = event.offsetLeft;
+        if(event.offsetParent !== null) {
+            offset += elementLeft(event.offsetParent);
+        }
+        return offset;
+    }
+    function elementTop(event) {
+        var offset = event.offsetTop;
+        if(event.offsetParent !== null) {
+            offset += elementTop(event.offsetParent);
+        }
+        return offset;
+    }
+    function getEleCoordinateOfPage(ele) {
+        var offsetLeft = ele.offsetLeft;
+        var offsetTop = ele.offsetTop;
+
+        if (ele.offsetParent !== null) {
+            var parCo =  getEleCoordinateOfPage(ele.offsetParent);
+            offsetLeft+=parCo.pageX;
+            offsetTop +=parCo.pageY;
+        }
+        return {pageX:offsetLeft,pageY:offsetTop};
+    }
+
+    var ele = document.getElementById("canvas");
+    console.log(ele.getBoundingClientRect());
+    console.log(getEleCoordinateOfPage(ele));
+
     var hgesLock = new H5GesLock({
         container: "canvas",
         inputEnd:function(str){

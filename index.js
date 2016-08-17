@@ -135,7 +135,7 @@ function drawTouchSpots(h5ges, isNormal) {
         var spot = h5ges.touchSpots[spotIndex];
         var color = isNormal ? h5ges.colorNormalTouchedFill : h5ges.colorWarnTouchedFill;
         mContext.beginPath();
-        mContext.strokeStyle=color;
+        mContext.strokeStyle = color;
         mContext.fillStyle = color;
         mContext.arc(spot.X, spot.Y, h5ges.R, 0, Math.PI * 2);
         mContext.fill();
@@ -223,7 +223,7 @@ function bindEvent(h5Ges) {
 var touchStartHandler = function (h5Ges) {
     return function (e) {
         let touche = e.touches[0];
-        var touchPoint = {X: touche.pageX, Y: touche.pageY};
+        var touchPoint =getTouchCoordinateOFElement(h5Ges,touche);
         isTouchSpot(h5Ges, touchPoint);
     };
 }
@@ -232,14 +232,15 @@ var touchMoveHandler = function (h5Ges) {
     return function (e) {
         e.preventDefault();
         var touche = e.touches[0];
-        var touchePoint = {X: touche.pageX, Y: touche.pageY};
-        var istouch = isTouchSpot(h5Ges, touchePoint);
+        var touchPoint =getTouchCoordinateOFElement(h5Ges,touche);
+        var istouch = isTouchSpot(h5Ges, touchPoint);
         pickSpotsOnLine(h5Ges.hasTouchedSpots, h5Ges.dy);
         clear(h5Ges);
-        let lastPoint = istouch ? null : {X: touche.pageX, Y: touche.pageY};
+        let lastPoint = istouch ? null : touchPoint;
         drawNormal(h5Ges, lastPoint);
     };
 }
+
 var touchEndHandler = function (h5Ges) {
     return function (e) {
         clear(h5Ges);
@@ -346,4 +347,21 @@ function numberOntheLineOf(i, j, d) {
         }
     }
     return result;
+}
+function getTouchCoordinateOFElement(h5ges, touche) {
+    var result = {};
+    var eleCo = getEleCoordinateOfPage(h5ges.mContainer);
+    result.X = touche.pageX - eleCo.pageX;
+    result.Y = touche.pageY - eleCo.pageY;
+    return result;
+}
+function getEleCoordinateOfPage(ele) {
+    var offsetLeft = ele.offsetLeft;
+    var offsetTop = ele.offsetTop;
+    if (ele.offsetParent !== null) {
+        var parCo = getEleCoordinateOfPage(ele.offsetParent);
+        offsetLeft += parCo.pageX;
+        offsetTop += parCo.pageY;
+    }
+    return {pageX: offsetLeft, pageY: offsetTop};
 }

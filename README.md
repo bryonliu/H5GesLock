@@ -1,6 +1,6 @@
 # H5GesLock
 html5页面手势密码锁
-* option={
+ * option={
  *     width : 宽度，建议使用默认的屏幕宽度
  *     height : 高度
  *     R      : 大圆的半径
@@ -20,7 +20,7 @@ html5页面手势密码锁
  *     inputEnd： 输入一次之后的回调函数参数｛pwd｝
  * }
 
- 
+
  *     H5GesLock 对外方法：
  *     init:初始化
  *     drawWarn ： 绘制上次的告警样式
