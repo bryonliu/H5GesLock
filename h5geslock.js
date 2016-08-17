@@ -74,11 +74,14 @@ var H5GesLock = function () {
 
     _createClass(H5GesLock, [{
         key: "init",
-        value: function init() {
-            clear(this);
-            this.hasTouchedSpots = [];
-            drawDefaultSpots(this);
-            bindEvent(this);
+        value: function init(delay) {
+            delay = delay || 100;
+            setTimeout(function () {
+                clear(this);
+                this.hasTouchedSpots = [];
+                drawDefaultSpots(this);
+                bindEvent(this);
+            }, delay);
         }
     }, {
         key: "drawWarn",

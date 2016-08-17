@@ -67,11 +67,14 @@ class H5GesLock {
 
     }
 
-    init() {
-        clear(this);
-        this.hasTouchedSpots = [];
-        drawDefaultSpots(this);
-        bindEvent(this);
+    init(delay) {
+        delay = delay || 100;
+        setTimeout(function () {
+            clear(this);
+            this.hasTouchedSpots = [];
+            drawDefaultSpots(this);
+            bindEvent(this);
+        }, delay);
     }
 
 
@@ -223,7 +226,7 @@ function bindEvent(h5Ges) {
 var touchStartHandler = function (h5Ges) {
     return function (e) {
         let touche = e.touches[0];
-        var touchPoint =getTouchCoordinateOFElement(h5Ges,touche);
+        var touchPoint = getTouchCoordinateOFElement(h5Ges, touche);
         isTouchSpot(h5Ges, touchPoint);
     };
 }
@@ -232,7 +235,7 @@ var touchMoveHandler = function (h5Ges) {
     return function (e) {
         e.preventDefault();
         var touche = e.touches[0];
-        var touchPoint =getTouchCoordinateOFElement(h5Ges,touche);
+        var touchPoint = getTouchCoordinateOFElement(h5Ges, touche);
         var istouch = isTouchSpot(h5Ges, touchPoint);
         pickSpotsOnLine(h5Ges.hasTouchedSpots, h5Ges.dy);
         clear(h5Ges);
