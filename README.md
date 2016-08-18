@@ -21,7 +21,7 @@ html5页面手势密码锁
  * }
 
  
- *     H5GesLock 对外方法：
+ # H5GesLock 对外方法：
  *     init:初始化
  *     drawWarn ： 绘制上次的告警样式
  *
