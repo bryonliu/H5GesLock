@@ -21,7 +21,7 @@ html5页面手势密码锁
  * }
 
 
- *     H5GesLock 对外方法：
- *     init:初始化
+ #     H5GesLock 对外方法：
+ *     init(delay):初始化 #delay#{int}延迟多久进行初始化，主要处理用于展示显示警告或者绘制之后的样式
  *     drawWarn ： 绘制上次的告警样式
  *
