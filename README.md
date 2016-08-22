@@ -1,5 +1,5 @@
 # H5GesLock
-html5页面手势密码锁
+##html5页面手势密码锁
  * option={
  *     width : 宽度，建议使用默认的屏幕宽度
  *     height : 高度
@@ -20,8 +20,22 @@ html5页面手势密码锁
  *     inputEnd： 输入一次之后的回调函数参数｛pwd｝
  * }
 
+##H5GesLock 对外方法：
 
- #     H5GesLock 对外方法：
  *     init(delay):初始化 #delay#{int}延迟多久进行初始化，主要处理用于展示显示警告或者绘制之后的样式
+
  *     drawWarn ： 绘制上次的告警样式
  *
+
+##Demo:
+```
+    var hgesLock = new H5GesLock({
+        container: "canvas",
+        inputEnd:function(str){
+            console.log("pwd: " + str);
+            hgesLock.drawWarn();
+            hgesLock.init(1000)
+        }
+    });
+    hgesLock.init();
+```
